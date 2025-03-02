@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Medicine</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav>
+        <a href="dashboard.html">Home</a>
+        <a href="profile.html">Profile</a>
+        <a href="#" onclick="logout()">Logout</a>
+    </nav>
+    
+    <h2>Add New Medicine</h2>
+    <form id="add-medicine-form">
+        <input type="text" id="med-name" placeholder="Medicine Name" required>
+        <input type="text" id="dosage" placeholder="Dosage" required>
+        <input type="time" id="time" required>
+        <button type="submit">Add Medicine</button>
+    </form>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const user = JSON.parse(localStorage.getItem("user"));
+            
+            if (!user || !user._id) {
+                alert("User not found! Please log in again.");
+                window.location.href = "login.html";
+                return;
+            }
+
+            document.getElementById("add-medicine-form").addEventListener("submit", async function (event) {
+                event.preventDefault(); // Prevent page reload
+
+                const medName = document.getElementById("med-name").value.trim();
+                const dosage = document.getElementById("dosage").value.trim();
+                const time = document.getElementById("time").value.trim();
+
+                if (!medName || !dosage || !time) {
+                    alert("Please fill in all fields.");
+                    return;
+                }
+
+                const medicineData = { 
+                    userId: user._id, // Ensure _id is sent
+                    name: medName, 
+                    dosage, 
+                    time 
+                };
+
+                try {
+                    const response = await fetch("http://localhost:5000/medications/add", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(medicineData),
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        alert("Medicine added successfully!");
+                        window.location.href = "dashboard.html"; // Redirect after success
+                    } else {
+                        alert(data.error || "Failed to add medicine.");
+                    }
+                } catch (error) {
+                    console.error("Error adding medicine:", error);
+                    alert("Error adding medicine. Please try again.");
+                }
+            });
+        });
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem("user"); // Remove stored user data
+            window.location.href = "login.html"; // Redirect to login page
+        }
+    </script>
+
+</body>
+</html>

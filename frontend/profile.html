@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile</title>
+    <link rel="stylesheet" href="style.css">
+    <script>
+        document.addEventListener("DOMContentLoaded", async function () {
+            const user = JSON.parse(localStorage.getItem("user"));
+
+            if (!user) {
+                alert("Please log in first!");
+                window.location.href = "login.html"; // Redirect if not logged in
+                return;
+            }
+
+            // ✅ Display user info
+            document.getElementById("profile-info").innerHTML = `
+                <p><strong>Username:</strong> ${user.username || user.name || "N/A"}</p>
+                <p><strong>Email:</strong> ${user.email || "N/A"}</p>
+            `;
+
+
+            // ✅ Fetch medication history
+            try {
+                const response = await fetch(`http://localhost:5000/medications/${user._id}`);
+                const medications = await response.json();
+
+                if (medications.length === 0) {
+                    document.getElementById("medication-history").innerHTML = "<p>No medication history found.</p>";
+                } else {
+                    let historyHTML = "<ul>";
+                    medications.forEach(med => {
+                        historyHTML += `
+                            <li>
+                                <strong>Name:</strong> ${med.name} <br>
+                                <strong>Dosage:</strong> ${med.dosage} <br>
+                                <strong>Time:</strong> ${med.time} <br>
+                            </li>
+                            <hr>
+                        `;
+                    });
+                    historyHTML += "</ul>";
+                    document.getElementById("medication-history").innerHTML = historyHTML;
+                }
+            } catch (error) {
+                console.error("Error fetching medication history:", error);
+                document.getElementById("medication-history").innerHTML = "<p>Error loading medication history.</p>";
+            }
+        });
+
+        // ✅ Logout function
+        function logout() {
+            localStorage.removeItem("user");
+            window.location.href = "login.html";
+        }
+    </script>
+</head>
+<body>
+    <nav>
+        <a href="dashboard.html">Home</a>
+        <a href="add-medicine.html">Add Medicine</a>
+        <a href="#" onclick="logout()">Logout</a>
+    </nav>
+
+    <h2>Your Profile</h2>
+    <div id="profile-info"></div>
+
+    <h3>Medication History</h3>
+    <div id="medication-history"></div>
+
+    <button onclick="logout()">Logout</button>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
